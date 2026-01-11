@@ -20,6 +20,21 @@ enum Role {
   ADMIN
 }
 
+enum RestaurantType {
+  PIZZA
+  ITALIAN
+  SUSHI
+  MEAT
+  FISH
+}
+
+enum TransportationType {
+  TRAIN
+  BUS
+  UNDERGROUND
+  TRAM
+}
+
 //MODELS
 model User {
   id        String   @id @default(cuid())
@@ -28,10 +43,111 @@ model User {
   name      String?
   surname   String?
   hashedRt  String?  
+  resetToken String?
+  resetTokenExpiresAt DateTime?
   role      Role     @default(USER)
-  // guides    Guide[] // Relazione: un utente può avere molte guide
-  // plan      Plan     @relation(fields: [planId], references: [id])
+  guides    Guide[] 
+  planId    String?
+  plan      Plan?     @relation(fields: [planId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+model Plan {
+  id        String   @id @default(cuid())
+  name      String
+  price     Float
+  description String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+}
+
+model Guide {
+  id        String   @id @default(cuid())
+  structureId String
+  structure Structure @relation(fields: [structureId], references: [id])
+  checkInRules String? @db.Text
+  checkOutRules String? @db.Text
+  wifiName String?
+  wifiPassword String?
+  restaurants Restaurant[]
+  activities Activity[]
+  supermarkets Supermarket[]
+  faqs Faq[]
+  rules Rules[]
+  transportation Transportation[]
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  isActive  Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Structure {
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  description String? @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  guides    Guide[]
+}
+
+model Restaurant {
+  id        String   @id @default(cuid())
+  name      String
+  link      String
+  address   String?
+  type      RestaurantType?
+  description String? @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  guides       Guide[]
+}
+
+model Activity {
+  id        String   @id @default(cuid())
+  name      String
+  description String? @db.Text
+  price Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  guides       Guide[]
+}
+
+model Faq {
+  id        String   @id @default(cuid())
+  question String @db.Text
+  answer String @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  guides       Guide[]
+}
+
+model Supermarket {
+  id        String   @id @default(cuid())
+  name      String
+  address   String?
+  description String? @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  guides       Guide[]
+}
+
+model Rules {
+  id        String   @id @default(cuid())
+  description String @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  guides       Guide[]
+}
+
+model Transportation {
+  id        String   @id @default(cuid())
+  type      TransportationType
+  description String @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  guides       Guide[]
+}

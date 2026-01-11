@@ -7,10 +7,10 @@ import { Request } from 'express';
 export class RtStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
   constructor() {
     super({
-      jwtFromRequest: (req: any) => {
-        let token = null;
+      jwtFromRequest: (req: Request) => {
+        let token: string | null = null;
         if (req && req.cookies) {
-          token = req.cookies['refresh_token'];
+          token = req.cookies['refresh_token'] as string;
         }
         return token || ExtractJwt.fromAuthHeaderAsBearerToken()(req);
       },
@@ -19,13 +19,16 @@ export class RtStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
     });
   }
 
-  validate(req: Request, payload: any) {
+  validate(req: Request, payload: { sub: string; email: string }) {
     // 1. Prova a prendere il token dai cookie
-    let refreshToken = req.cookies?.['refresh_token'];
+    let refreshToken: string | null = req.cookies?.['refresh_token'] as string;
 
     // 2. Se non c'è (fallback), prova dall'header
     if (!refreshToken) {
-      refreshToken = req.get('authorization')?.replace('Bearer', '').trim();
+      refreshToken = req
+        .get('authorization')
+        ?.replace('Bearer', '')
+        .trim() as string;
     }
 
     // 3. Se non c'è in nessuno dei due posti, allora lancia l'errore

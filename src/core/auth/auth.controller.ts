@@ -4,16 +4,16 @@ import {
   Post,
   HttpCode,
   HttpStatus,
-  Req,
   UseGuards,
   Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto, SignupDto } from './auth.dto';
+import { LoginDto, ResetPasswordDto, SignupDto } from './auth.dto';
 import { Public } from '@/shared/decorators/public.decorator';
 import { ApiTags } from '@nestjs/swagger';
 import { RtGuard } from './guards/rt.guard';
 import { Response } from 'express';
+import { GetUser } from '@/shared/decorators/get-user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -49,26 +49,43 @@ export class AuthController {
 
   @ApiTags('Auth')
   @Public()
-  @UseGuards(RtGuard) // Guard per la refresh token
+  @UseGuards(RtGuard)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  refreshTokens(@Req() req: any) {
-    const userId = req.user.sub;
-    const refreshToken = req.user.refreshToken;
-    console.log('Cookies ricevuti dal server:', req.cookies);
-
-    return this.authService.refreshTokens(userId, refreshToken);
+  refreshTokens(@GetUser() user: any) {
+    return this.authService.refreshTokens(user.sub, user.refreshToken);
   }
 
   @ApiTags('Auth')
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  async logout(@Req() req: any, @Res({ passthrough: true }) res: Response) {
-    await this.authService.logout(req.user.sub);
-
-    // Cancelliamo il cookie dal browser
-    res.clearCookie('refresh_token', { path: '/' });
-
+  async logout(
+    @GetUser('sub') userId: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    await this.authService.logout(userId);
+    res.clearCookie('refresh_token');
     return { message: 'Logged out' };
+  }
+
+  @ApiTags('Auth')
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body('email') email: string) {
+    return this.authService.forgotPassword(email);
+  }
+
+  @ApiTags('Auth')
+  @Public()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    console.log('XXXXXXXXXXXXXXXXXXXX');
+    console.log('XXXXXXXXXXXXXXXXXXXX');
+    console.log('XXXXXXXXXXXXXXXXXXXX');
+
+    console.log('reset password dto', dto);
+    return this.authService.resetPassword(dto);
   }
 }

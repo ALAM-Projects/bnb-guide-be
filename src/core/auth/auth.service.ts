@@ -2,7 +2,8 @@ import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { LoginDto, SignupDto } from './auth.dto';
+import { LoginDto, ResetPasswordDto, SignupDto } from './auth.dto';
+import { MailService } from '@/shared/mail/mail.service';
 // import 'dotenv/config';
 
 @Injectable()
@@ -10,6 +11,7 @@ export class AuthService {
   constructor(
     private jwt: JwtService,
     private prisma: PrismaService,
+    private mail: MailService,
   ) {}
 
   async signup(dto: SignupDto) {
@@ -30,7 +32,7 @@ export class AuthService {
       const tokens = await this.getTokens(user.id, user.email);
       await this.updateRtHash(user.id, tokens.refresh_token);
       return tokens;
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === 'P2002') {
         throw new ForbiddenException('Email già esistente');
       }
@@ -59,7 +61,7 @@ export class AuthService {
     const [at, rt] = await Promise.all([
       this.jwt.signAsync(
         { sub: userId, email },
-        { secret: 'at-secret', expiresIn: '10s' },
+        { secret: 'at-secret', expiresIn: '15m' },
       ),
       this.jwt.signAsync(
         { sub: userId, email },
@@ -115,5 +117,63 @@ export class AuthService {
       },
     });
     return { message: 'Logged out successfully' };
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) return; // Non confermiamo l'esistenza dell'email per privacy
+
+    const token = Math.random().toString(36).substring(2, 15); // Token in chiaro
+    const hash = await bcrypt.hash(token, 10); // Hash da salvare nel DB
+
+    const expires = new Date(Date.now() + 15 * 60 * 1000); // Scadenza 15 min
+
+    await this.prisma.user.update({
+      where: { email },
+      data: {
+        resetToken: hash,
+        resetTokenExpiresAt: expires,
+      },
+    });
+
+    // Invia il token IN CHIARO via email
+    await this.mail.sendResetPasswordEmail(email, token);
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email: dto.email,
+        resetTokenExpiresAt: { gt: new Date() }, // Token non scaduto
+      },
+    });
+
+    if (!user || !user.resetToken || !user.resetTokenExpiresAt) {
+      throw new ForbiddenException('Richiesta non valida');
+    }
+
+    // Controllo scadenza
+    if (new Date() > user.resetTokenExpiresAt) {
+      throw new ForbiddenException('Token scaduto');
+    }
+
+    // Confronto hash
+    const isTokenValid = await bcrypt.compare(dto.token, user.resetToken);
+    if (!isTokenValid) {
+      throw new ForbiddenException('Token non valido');
+    }
+
+    // 2. Hashiamo la nuova password
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+
+    // 3. Aggiorniamo l'utente e cancelliamo i campi di reset
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        resetToken: null,
+        resetTokenExpiresAt: null,
+      },
+    });
   }
 }

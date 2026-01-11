@@ -6,6 +6,7 @@ import { AtGuard } from './core/auth/guards/at.guard';
 import { RtStrategy } from './core/auth/strategies/rt.strategy';
 import { AtStrategy } from './core/auth/strategies/at.strategy';
 import { UserModule } from './modules/user/user.module';
+import { MailModule } from './shared/mail/mail.module';
 
 @Module({
   imports: [
@@ -15,6 +16,8 @@ import { UserModule } from './modules/user/user.module';
     DatabaseModule,
     // Feature modules (vertical slices)
     UserModule,
+    // Shared
+    MailModule,
   ],
   providers: [
     RtStrategy,

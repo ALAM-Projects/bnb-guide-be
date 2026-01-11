@@ -14,6 +14,6 @@ export class AtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
   validate(payload: any) {
     // Ciò che restituisci qui finirà in `req.user`
-    return payload; // Es: { sub: 1, email: 'test@test.com' }
+    return payload as { sub: number; email: string }; // Es: { sub: 1, email: 'test@test.com' }
   }
 }
