@@ -1,35 +1,29 @@
-import {
-  Body,
-  Controller,
-  Post,
-  HttpCode,
-  HttpStatus,
-  UseGuards,
-  Res,
-} from '@nestjs/common';
+import { Body, Controller, UseGuards, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto, ResetPasswordDto, SignupDto } from './auth.dto';
+import {
+  ForgotPasswordDto,
+  LoginDto,
+  ResetPasswordDto,
+  SignupDto,
+} from './auth.dto';
 import { Public } from '@/shared/decorators/public.decorator';
-import { ApiTags } from '@nestjs/swagger';
 import { RtGuard } from './guards/rt.guard';
 import { Response } from 'express';
 import { GetUser } from '@/shared/decorators/get-user.decorator';
+import { ApiAction } from '@/shared/decorators/api-action.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @ApiTags('Auth')
+  @ApiAction('post', 'Auth', 'signup')
   @Public()
-  @Post('signup')
   signup(@Body() dto: SignupDto) {
     return this.authService.signup(dto);
   }
 
-  @ApiTags('Auth')
+  @ApiAction('post', 'Auth', 'login')
   @Public()
-  @HttpCode(HttpStatus.OK)
-  @Post('login')
   async login(
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -47,18 +41,14 @@ export class AuthController {
     return { access_token: tokens.access_token };
   }
 
-  @ApiTags('Auth')
+  @ApiAction('post', 'Auth', 'refresh')
   @Public()
   @UseGuards(RtGuard)
-  @Post('refresh')
-  @HttpCode(HttpStatus.OK)
   refreshTokens(@GetUser() user: any) {
     return this.authService.refreshTokens(user.sub, user.refreshToken);
   }
 
-  @ApiTags('Auth')
-  @Post('logout')
-  @HttpCode(HttpStatus.OK)
+  @ApiAction('post', 'Auth', 'logout')
   async logout(
     @GetUser('sub') userId: string,
     @Res({ passthrough: true }) res: Response,
@@ -68,24 +58,15 @@ export class AuthController {
     return { message: 'Logged out' };
   }
 
-  @ApiTags('Auth')
+  @ApiAction('post', 'Auth', 'forgot-password')
   @Public()
-  @Post('forgot-password')
-  @HttpCode(HttpStatus.OK)
-  async forgotPassword(@Body('email') email: string) {
-    return this.authService.forgotPassword(email);
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto.email);
   }
 
-  @ApiTags('Auth')
+  @ApiAction('post', 'Auth', 'reset-password')
   @Public()
-  @Post('reset-password')
-  @HttpCode(HttpStatus.OK)
   async resetPassword(@Body() dto: ResetPasswordDto) {
-    console.log('XXXXXXXXXXXXXXXXXXXX');
-    console.log('XXXXXXXXXXXXXXXXXXXX');
-    console.log('XXXXXXXXXXXXXXXXXXXX');
-
-    console.log('reset password dto', dto);
     return this.authService.resetPassword(dto);
   }
 }

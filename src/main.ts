@@ -3,18 +3,32 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
+import { join } from 'path';
+import * as fs from 'node:fs';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()
-    .setTitle('Bnb guide API')
-    .setDescription('The Bnb guide API description')
+    .setTitle('Hostly')
+    .setDescription('Hostly API description')
     .setVersion('1.0')
     .build();
 
   const allowedTags = ['Posts', 'Users'];
   const document = SwaggerModule.createDocument(app, config);
+
+  SwaggerModule.setup('api', app, document);
+
+  // Questo genera il file fisico che Orval leggerà
+  if (process.env.NODE_ENV === 'development') {
+    const outputPath = join(process.cwd(), 'swagger-spec.json');
+
+    // Ora fs è tipizzato correttamente e non avrai più "Unsafe call"
+    fs.writeFileSync(outputPath, JSON.stringify(document, null, 2), 'utf8');
+
+    console.log(`✅ Swagger spec generata in: ${outputPath}`);
+  }
 
   document.tags = document.tags?.filter(({ name }) =>
     allowedTags.includes(name),
