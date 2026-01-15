@@ -7,6 +7,7 @@ import { RtStrategy } from './core/auth/strategies/rt.strategy';
 import { AtStrategy } from './core/auth/strategies/at.strategy';
 import { UserModule } from './modules/user/user.module';
 import { MailModule } from './shared/mail/mail.module';
+import { GuideModule } from './modules/guide/guide.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { MailModule } from './shared/mail/mail.module';
     UserModule,
     // Shared
     MailModule,
+    GuideModule,
   ],
   providers: [
     RtStrategy,

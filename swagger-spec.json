@@ -175,6 +175,65 @@
           "Users"
         ]
       }
+    },
+    "/guide/getMyGuides": {
+      "get": {
+        "operationId": "getMyGuides",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GuideDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Guide",
+          "Guides"
+        ]
+      }
+    },
+    "/guide/createGuide": {
+      "post": {
+        "operationId": "createGuide",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGuideWithStructureDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuideDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Guide",
+          "Guides"
+        ]
+      }
     }
   },
   "info": {
@@ -214,6 +273,376 @@
       "UserDto": {
         "type": "object",
         "properties": {}
+      },
+      "StructureDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "description": {
+            "type": "object"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "address",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "RestaurantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          },
+          "address": {
+            "type": "object"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PIZZA",
+              "ITALIAN",
+              "SUSHI",
+              "MEAT",
+              "FISH"
+            ]
+          },
+          "description": {
+            "type": "object"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "link",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ActivityDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "object"
+          },
+          "price": {
+            "type": "object"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "SupermarketDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "object"
+          },
+          "description": {
+            "type": "object"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "FaqDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "question": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "question",
+          "answer",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "RulesDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "description",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "TransportationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "TRAIN",
+              "BUS",
+              "UNDERGROUND",
+              "TRAM"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "description",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "GuideDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "structureId": {
+            "type": "string"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/StructureDto"
+          },
+          "checkInRules": {
+            "type": "object"
+          },
+          "checkOutRules": {
+            "type": "object"
+          },
+          "wifiName": {
+            "type": "object"
+          },
+          "wifiPassword": {
+            "type": "object"
+          },
+          "restaurants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantDto"
+            }
+          },
+          "activities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivityDto"
+            }
+          },
+          "supermarkets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupermarketDto"
+            }
+          },
+          "faqs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FaqDto"
+            }
+          },
+          "rules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RulesDto"
+            }
+          },
+          "transportation": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransportationDto"
+            }
+          },
+          "userId": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "structureId",
+          "structure",
+          "restaurants",
+          "activities",
+          "supermarkets",
+          "faqs",
+          "rules",
+          "transportation",
+          "userId",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateStructureDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "description": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "name",
+          "address"
+        ]
+      },
+      "CreateGuideDataDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "CreateGuideWithStructureDto": {
+        "type": "object",
+        "properties": {
+          "structure": {
+            "$ref": "#/components/schemas/CreateStructureDto"
+          },
+          "guide": {
+            "$ref": "#/components/schemas/CreateGuideDataDto"
+          }
+        },
+        "required": [
+          "structure",
+          "guide"
+        ]
       }
     }
   }

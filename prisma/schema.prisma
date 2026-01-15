@@ -63,8 +63,9 @@ model Plan {
   users     User[]
 }
 
-model Guide {
+model Guide  {
   id        String   @id @default(cuid())
+  title     String
   structureId String
   structure Structure @relation(fields: [structureId], references: [id])
   checkInRules String? @db.Text
