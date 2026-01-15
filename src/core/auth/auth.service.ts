@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto, ResetPasswordDto, SignupDto } from './auth.dto';
 import { MailService } from '@/shared/mail/mail.service';
+import { DBManager } from '@/infrastructure/database/database.manager';
 // import 'dotenv/config';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class AuthService {
     private jwt: JwtService,
     private prisma: PrismaService,
     private mail: MailService,
+    private dbManager: DBManager,
   ) {}
 
   async signup(dto: SignupDto) {
@@ -19,15 +21,14 @@ export class AuthService {
     const hash = await bcrypt.hash(dto.password, 10);
 
     try {
+      const newUser = {
+        name: dto.name,
+        surname: dto.surname,
+        email: dto.email,
+        password: hash,
+      };
       // 2. Salva l'utente nel database
-      const user = await this.prisma.user.create({
-        data: {
-          name: dto.name,
-          surname: dto.surname,
-          email: dto.email,
-          password: hash,
-        },
-      });
+      const user = await this.dbManager.users.create(newUser);
 
       const tokens = await this.getTokens(user.id, user.email);
       await this.updateRtHash(user.id, tokens.refresh_token);
@@ -42,8 +43,8 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     // 1. Trova l'utente tramite email
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
+    const user = await this.dbManager.users.findUnique({
+      email: dto.email,
     });
 
     if (!user) throw new ForbiddenException('Credenziali errate');
@@ -61,7 +62,7 @@ export class AuthService {
     const [at, rt] = await Promise.all([
       this.jwt.signAsync(
         { sub: userId, email },
-        { secret: 'at-secret', expiresIn: '15m' },
+        { secret: 'at-secret', expiresIn: '10s' },
       ),
       this.jwt.signAsync(
         { sub: userId, email },
@@ -74,17 +75,14 @@ export class AuthService {
 
   async updateRtHash(userId: string, rt: string) {
     const hash = await bcrypt.hash(rt, 10);
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { hashedRt: hash },
-    });
+    await this.dbManager.users.update({ id: userId }, { hashedRt: hash });
   }
 
   // src/auth/auth.service.ts
 
   async refreshTokens(userId: string, rt: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
+    const user = await this.dbManager.users.findUnique({
+      id: userId,
     });
 
     // 1. L'utente esiste e ha un RT salvato?
@@ -107,20 +105,13 @@ export class AuthService {
   async logout(userId: string) {
     // Utilizziamo updateMany per sicurezza, ma puntiamo all'ID unico
     // Impostiamo hashedRt a null per invalidare il Refresh Token
-    await this.prisma.user.updateMany({
-      where: {
-        id: userId,
-        hashedRt: { not: null },
-      },
-      data: {
-        hashedRt: null,
-      },
-    });
+    await this.dbManager.users.update({ id: userId }, { hashedRt: null });
+
     return { message: 'Logged out successfully' };
   }
 
   async forgotPassword(email: string) {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const user = await this.dbManager.users.findUnique({ email });
     if (!user) return; // Non confermiamo l'esistenza dell'email per privacy
 
     const token = Math.random().toString(36).substring(2, 15); // Token in chiaro
@@ -128,24 +119,19 @@ export class AuthService {
 
     const expires = new Date(Date.now() + 15 * 60 * 1000); // Scadenza 15 min
 
-    await this.prisma.user.update({
-      where: { email },
-      data: {
-        resetToken: hash,
-        resetTokenExpiresAt: expires,
-      },
-    });
+    await this.dbManager.users.update(
+      { email },
+      { resetToken: hash, resetTokenExpiresAt: expires },
+    );
 
     // Invia il token IN CHIARO via email
     await this.mail.sendResetPasswordEmail(email, token);
   }
 
   async resetPassword(dto: ResetPasswordDto) {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        email: dto.email,
-        resetTokenExpiresAt: { gt: new Date() }, // Token non scaduto
-      },
+    const user = await this.dbManager.users.findUnique({
+      email: dto.email,
+      resetTokenExpiresAt: { gt: new Date() }, // Token non scaduto
     });
 
     if (!user || !user.resetToken || !user.resetTokenExpiresAt) {
@@ -167,13 +153,15 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
 
     // 3. Aggiorniamo l'utente e cancelliamo i campi di reset
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        password: hashedPassword,
-        resetToken: null,
-        resetTokenExpiresAt: null,
-      },
-    });
+    await this.dbManager.users.update(
+      { id: user.id },
+      { password: hashedPassword, resetToken: null, resetTokenExpiresAt: null },
+    );
+  }
+
+  async verifyAccessToken(token: string, userId: string): Promise<any> {
+    if (!token) throw new Error('Token non valido');
+    const auth = await this.jwt.verify(token, { secret: 'at-secret' });
+    if (!auth) await this.refreshTokens(userId, auth.refreshToken);
   }
 }

@@ -137,25 +137,39 @@
         ]
       }
     },
-    "/user/updateUser": {
-      "patch": {
-        "operationId": "UserController_updateName",
+    "/auth/status": {
+      "get": {
+        "operationId": "status",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UserDto"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": ""
           }
         },
+        "summary": "",
+        "tags": [
+          "Auth",
+          "Auth"
+        ]
+      }
+    },
+    "/user/getUser": {
+      "get": {
+        "operationId": "getUser",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "",
         "tags": [
           "User",
           "Users"

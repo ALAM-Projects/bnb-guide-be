@@ -1,17 +1,45 @@
-import { IsEmail, IsString, MinLength } from 'class-validator';
+import { IsDate, IsEmail, IsString } from 'class-validator';
+import { Role } from '@generated/prisma/client';
+import { Exclude } from 'class-transformer';
 
 export class UserDto {
   @IsString()
-  name?: string;
+  id: string;
 
-  // @IsString()
-  // surname?: string;
+  @IsEmail()
+  email: string;
 
-  // @IsString()
-  // @IsEmail({}, { message: 'Email non valida' })
-  // email?: string;
+  @IsString()
+  name: string | null;
 
-  // @IsString()
-  // @MinLength(6, { message: 'La password deve contenere almeno 6 caratteri' })
-  // password?: string;
+  @IsString()
+  surname: string | null;
+
+  @IsString()
+  role: Role;
+
+  @IsString()
+  planId: string | null;
+
+  @IsDate()
+  createdAt: Date;
+
+  @IsDate()
+  updatedAt: Date;
+
+  @Exclude()
+  password: string;
+
+  @Exclude()
+  hashedRt: string;
+
+  @Exclude()
+  resetToken: string | null;
+
+  @Exclude()
+  resetTokenExpiresAt: Date | null;
+
+  constructor(partial: Partial<UserDto>) {
+    Object.assign(this, partial);
+  }
 }

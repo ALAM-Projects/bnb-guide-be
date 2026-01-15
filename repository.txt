@@ -1,0 +1,114 @@
+import { PrismaService } from '@/infrastructure/database/prisma.service';
+import { Prisma } from '@generated/prisma/client';
+import { Injectable } from '@nestjs/common';
+
+// Cerca [Model] (con la M maiuscola) e sostituiscilo con Property.
+// Cerca [model] (con la m minuscola) e sostituiscilo con property.
+
+@Injectable()
+export class [Model]Repository {
+  constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Trova un record unico tramite ID o un campo Unique (es. email).
+   * Permette di includere relazioni tramite il parametro 'include'.
+   */
+  async findUnique(where: Prisma.[Model]WhereUniqueInput, include?: Prisma.[Model]Include) {
+    return this.prisma.[model].findUnique({
+      where,
+      include,
+    });
+  }
+
+  /**
+   * Trova il primo record che soddisfa i criteri di ricerca.
+   * Utile quando la ricerca non avviene su campi univoci.
+   */
+  async findFirst(where: Prisma.[Model]WhereInput, include?: Prisma.[Model]Include) {
+    return this.prisma.[model].findFirst({
+      where,
+      include,
+    });
+  }
+
+  /**
+   * Recupera una lista di record con supporto a:
+   * paginazione (skip/take), filtri (where), ordinamento (orderBy) e relazioni (include).
+   */
+  async findMany(params?: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.[Model]WhereUniqueInput;
+    where?: Prisma.[Model]WhereInput;
+    orderBy?: Prisma.[Model]OrderByWithRelationInput;
+    include?: Prisma.[Model]Include;
+  }) {
+    return this.prisma.[model].findMany(params);
+  }
+
+  /**
+   * Crea un nuovo record. 
+   * Il tipo [Model]CreateInput garantisce che tutti i campi obbligatori siano presenti.
+   */
+  async create(data: Prisma.[Model]CreateInput, include?: Prisma.[Model]Include) {
+    return this.prisma.[model].create({
+      data,
+      include,
+    });
+  }
+
+  /**
+   * Aggiorna un record esistente identificato da un campo Unique.
+   */
+  async update(where: Prisma.[Model]WhereUniqueInput, data: Prisma.[Model]UpdateInput) {
+    return this.prisma.[model].update({
+      where,
+      data,
+    });
+  }
+
+  /**
+   * "Crea o Aggiorna": se il record esiste lo aggiorna, altrimenti lo crea.
+   * Estremamente utile per sincronizzazioni o profili utente.
+   */
+  async upsert(
+    where: Prisma.[Model]WhereUniqueInput,
+    create: Prisma.[Model]CreateInput,
+    update: Prisma.[Model]UpdateInput,
+  ) {
+    return this.prisma.[model].upsert({
+      where,
+      create,
+      update,
+    });
+  }
+
+  /**
+   * Elimina un singolo record tramite un identificativo unico.
+   */
+  async delete(where: Prisma.[Model]WhereUniqueInput) {
+    return this.prisma.[model].delete({
+      where,
+    });
+  }
+
+  /**
+   * Elimina più record contemporaneamente in base a un filtro.
+   * Attenzione: non restituisce i record eliminati, ma solo il conteggio.
+   */
+  async deleteMany(where: Prisma.[Model]WhereInput) {
+    return this.prisma.[model].deleteMany({
+      where,
+    });
+  }
+
+  /**
+   * Restituisce il numero totale di record che soddisfano un filtro.
+   * Ottimo per gestire il calcolo delle pagine nel frontend.
+   */
+  async count(where?: Prisma.[Model]WhereInput) {
+    return this.prisma.[model].count({
+      where,
+    });
+  }
+}

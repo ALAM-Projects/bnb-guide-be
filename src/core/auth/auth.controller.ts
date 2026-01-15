@@ -1,4 +1,11 @@
-import { Body, Controller, UseGuards, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  UseGuards,
+  Res,
+  Req,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   ForgotPasswordDto,
@@ -38,22 +45,54 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 giorni
     });
 
+    res.cookie('auth_token', tokens.access_token, {
+      httpOnly: false, // Accessibile da JavaScript per le server functions
+      secure: false,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 15 * 60 * 1000, // 15 minuti (deve coincidere con la durata del JWT)
+    });
+
     return { access_token: tokens.access_token };
   }
 
   @ApiAction('post', 'Auth', 'refresh')
   @Public()
   @UseGuards(RtGuard)
-  refreshTokens(@GetUser() user: any) {
-    return this.authService.refreshTokens(user.sub, user.refreshToken);
+  async refreshTokens(
+    @GetUser() user: any,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    console.log('SONO DENTRO IL REFRESH TOKENS');
+
+    const tokens = await this.authService.refreshTokens(
+      user.sub,
+      user.refreshToken,
+    );
+
+    // Impostiamo i nuovi cookie
+    res.cookie('refresh_token', tokens.refresh_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 giorni
+    });
+
+    res.cookie('auth_token', tokens.access_token, {
+      httpOnly: false, // Accessibile da JavaScript
+      secure: false,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 15, //15 secondui
+    });
+
+    return { access_token: tokens.access_token };
   }
 
   @ApiAction('post', 'Auth', 'logout')
-  async logout(
-    @GetUser('sub') userId: string,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    await this.authService.logout(userId);
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('auth_token');
     res.clearCookie('refresh_token');
     return { message: 'Logged out' };
   }
@@ -68,5 +107,25 @@ export class AuthController {
   @Public()
   async resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto);
+  }
+
+  @ApiAction('get', 'Auth', 'status')
+  async getStatus(@Req() req: Request): Promise<any> {
+    const accessToken = (req as any).cookies['auth_token'];
+    const userId = (req as any).user.id;
+
+    try {
+      // Se il token è valido, restituisci l'utente
+      const user = await this.authService.verifyAccessToken(
+        accessToken,
+        userId,
+      );
+
+      return { isAuthenticated: true, user };
+    } catch {
+      // Se è scaduto o mancante, ERRORE 401.
+      // NON rigeneriamo nulla qui.
+      throw new UnauthorizedException();
+    }
   }
 }
