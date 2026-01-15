@@ -60,14 +60,14 @@ export class AuthService {
 
   async getTokens(userId: string, email: string) {
     const [at, rt] = await Promise.all([
-      this.jwt.signAsync(
-        { sub: userId, email },
-        { secret: 'at-secret', expiresIn: '10s' },
-      ),
-      this.jwt.signAsync(
-        { sub: userId, email },
-        { secret: 'rt-secret', expiresIn: '7d' },
-      ),
+      this.jwt.signAsync({ sub: userId, email }, {
+        secret: process.env.JWT_AT_SECRET,
+        expiresIn: process.env.JWT_AT_EXPIRES_IN,
+      } as any),
+      this.jwt.signAsync({ sub: userId, email }, {
+        secret: process.env.JWT_RT_SECRET,
+        expiresIn: process.env.JWT_RT_EXPIRES_IN,
+      } as any),
     ]);
 
     return { access_token: at, refresh_token: rt };

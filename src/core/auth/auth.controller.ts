@@ -60,11 +60,9 @@ export class AuthController {
   @Public()
   @UseGuards(RtGuard)
   async refreshTokens(
-    @GetUser() user: any,
+    @GetUser() user: { sub: string; email: string; refreshToken: string },
     @Res({ passthrough: true }) res: Response,
   ) {
-    console.log('SONO DENTRO IL REFRESH TOKENS');
-
     const tokens = await this.authService.refreshTokens(
       user.sub,
       user.refreshToken,
@@ -110,12 +108,16 @@ export class AuthController {
   }
 
   @ApiAction('get', 'Auth', 'status')
-  async getStatus(@Req() req: Request): Promise<any> {
-    const accessToken = (req as any).cookies['auth_token'];
-    const userId = (req as any).user.id;
+  async getStatus(
+    @Req()
+    req: Request & { cookies: Record<string, string>; user: { id: string } },
+  ): Promise<any> {
+    const accessToken = req.cookies['auth_token'];
+    const userId = req.user.id;
 
     try {
       // Se il token è valido, restituisci l'utente
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const user = await this.authService.verifyAccessToken(
         accessToken,
         userId,

@@ -6,6 +6,7 @@ import { Request } from 'express';
 @Injectable()
 export class RtStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
   constructor() {
+    const secret = process.env.JWT_RT_SECRET || 'rt-secret-fallback';
     super({
       jwtFromRequest: (req: Request) => {
         let token: string | null = null;
@@ -14,7 +15,7 @@ export class RtStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
         }
         return token || ExtractJwt.fromAuthHeaderAsBearerToken()(req);
       },
-      secretOrKey: 'rt-secret',
+      secretOrKey: secret,
       passReqToCallback: true,
     });
   }

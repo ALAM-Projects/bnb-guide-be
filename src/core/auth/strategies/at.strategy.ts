@@ -5,10 +5,11 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 @Injectable()
 export class AtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor() {
+    const secret = process.env.JWT_AT_SECRET || 'at-secret-fallback';
     super({
       // Estrae il token dall'header "Authorization: Bearer <token>"
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: 'at-secret', // Usa una variabile d'ambiente in produzione!
+      secretOrKey: secret,
     });
   }
 
