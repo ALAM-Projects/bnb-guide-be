@@ -1,8 +1,11 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { GuideRepository } from './guide.repository';
 import { Guide } from '@generated/prisma/client';
-import { GuideDto, CreateGuideWithStructureDto } from './guide.dto';
-import { plainToInstance } from 'class-transformer';
+import { CreateGuideWithStructureDto } from './guide.dto';
 
 @Injectable()
 export class GuideService {
@@ -38,7 +41,7 @@ export class GuideService {
   async createGuide(
     data: CreateGuideWithStructureDto,
     userId: string,
-  ): Promise<GuideDto> {
+  ): Promise<Guide> {
     try {
       // Crea la guida con la struttura in una sola transazione
       const createdGuide = await this.guideRepository.create(
@@ -67,7 +70,30 @@ export class GuideService {
         },
       );
 
-      return plainToInstance(GuideDto, createdGuide);
+      return createdGuide;
+    } catch (error) {
+      throw new InternalServerErrorException((error as Error).message);
+    }
+  }
+
+  async getGuideById(guideId: string): Promise<Guide> {
+    try {
+      const guide = await this.guideRepository.findUnique(
+        { id: guideId },
+        {
+          structure: true,
+          restaurants: true,
+          activities: true,
+          supermarkets: true,
+          faqs: true,
+          rules: true,
+          transportation: true,
+        },
+      );
+      if (!guide) {
+        throw new NotFoundException('Guida non trovata');
+      }
+      return guide;
     } catch (error) {
       throw new InternalServerErrorException((error as Error).message);
     }

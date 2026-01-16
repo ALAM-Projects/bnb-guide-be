@@ -1,5 +1,5 @@
 import { ApiAction } from '@/shared/decorators/api-action.decorator';
-import { Body, Controller } from '@nestjs/common';
+import { Body, Controller, Param } from '@nestjs/common';
 import { ApiExtraModels, ApiOkResponse } from '@nestjs/swagger';
 import {
   ActivityDto,
@@ -45,6 +45,19 @@ export class GuideController {
     @Body() createGuideDto: CreateGuideWithStructureDto,
     @GetUser() reqUser: User,
   ): Promise<GuideDto> {
-    return await this.guideService.createGuide(createGuideDto, reqUser.id);
+    const createdGuide = await this.guideService.createGuide(
+      createGuideDto,
+      reqUser.id,
+    );
+    return plainToInstance(GuideDto, createdGuide);
+  }
+
+  @ApiAction('get', 'Guides', ':id', 'getGuideById')
+  @ApiOkResponse({ type: GuideDto })
+  async getGuideById(@Param('id') guideId: string): Promise<GuideDto> {
+    console.log('guideId', guideId);
+
+    const guide = await this.guideService.getGuideById(guideId);
+    return plainToInstance(GuideDto, guide);
   }
 }
