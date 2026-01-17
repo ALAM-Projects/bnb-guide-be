@@ -153,6 +153,22 @@
         ]
       }
     },
+    "/auth/check": {
+      "get": {
+        "operationId": "check",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Auth",
+          "Auth"
+        ]
+      }
+    },
     "/user/getUser": {
       "get": {
         "operationId": "getUser",

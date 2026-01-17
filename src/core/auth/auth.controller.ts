@@ -82,7 +82,7 @@ export class AuthController {
       secure: false,
       sameSite: 'lax',
       path: '/',
-      maxAge: 15, //15 secondui
+      maxAge: 15 * 60 * 1000, // 15 minuti (deve coincidere con la durata del JWT)
     });
 
     return { access_token: tokens.access_token };
@@ -129,5 +129,20 @@ export class AuthController {
       // NON rigeneriamo nulla qui.
       throw new UnauthorizedException();
     }
+  }
+
+  @ApiAction('get', 'Auth', 'check')
+  checkAuth(@GetUser() user: { sub: string; email: string }): {
+    isAuthenticated: boolean;
+    userId: string;
+    email: string;
+  } {
+    // Se il guard AtGuard ha passato la richiesta, il token è valido
+    // Restituiamo semplicemente un 200 OK con i dati base dell'utente
+    return {
+      isAuthenticated: true,
+      userId: user.sub,
+      email: user.email,
+    };
   }
 }
