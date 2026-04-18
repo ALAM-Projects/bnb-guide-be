@@ -49,14 +49,15 @@ async function bootstrap() {
     });
   });
 
-  SwaggerModule.setup('api', app, document);
-  app.use(cookieParser());
-  app.useGlobalPipes(new ValidationPipe());
   app.enableCors({
     origin: 'http://localhost:3000',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type,Authorization,Accept',
     credentials: true,
   });
+  app.use(cookieParser());
+  app.useGlobalPipes(new ValidationPipe());
+  SwaggerModule.setup('api', app, document);
 
   await app.listen(process.env.PORT ?? 3001);
 
